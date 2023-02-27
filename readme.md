@@ -6,7 +6,7 @@ It can be usefull in projects that allows you to build a custom installer for Wi
 ## Building
 1. Build it with the "dotnet build" command
 2. Run the produced WindowsIsoDownloader.exe
-3. The result will be a windows11.iso file in the same folder as the WindowsIsoDownloader.exe
+3. The result will be a windows11.iso file in the same folder as WindowsIsoDownloader.exe
 
 ## Why not publishing a release?
 I prefer not to publish a pre-built executable. The goal is to have as little code as possible,
