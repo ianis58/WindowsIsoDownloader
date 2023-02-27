@@ -1,8 +1,8 @@
-﻿namespace WindowsIsoDownloader;
+﻿namespace WindowsIsoDownloader.Extension;
 
 public static class HttpClientExtensions
 {
-    public static async Task DownloadAsync(this HttpClient client, string requestUri, Stream destination, IProgress<float> progress = null, CancellationToken cancellationToken = default)
+    public static async Task DownloadAsync(this HttpClient client, string requestUri, Stream destination, IProgress<float> progress, CancellationToken cancellationToken = default)
     {
         // Get the http headers first to examine the content length
         using (var response = await client.GetAsync(requestUri, HttpCompletionOption.ResponseHeadersRead))

@@ -1,8 +1,8 @@
-﻿namespace WindowsIsoDownloader;
+﻿namespace WindowsIsoDownloader.Extension;
 
 public static class StreamExtensions
 {
-    public static async Task CopyToAsync(this Stream source, Stream destination, int bufferSize, IProgress<long> progress = null, CancellationToken cancellationToken = default)
+    public static async Task CopyToAsync(this Stream source, Stream destination, int bufferSize, IProgress<long> progress, CancellationToken cancellationToken = default)
     {
         if (source == null)
             throw new ArgumentNullException(nameof(source));

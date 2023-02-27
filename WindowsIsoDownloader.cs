@@ -1,5 +1,5 @@
 ﻿using PuppeteerSharp;
-using WindowsIsoDownloader;
+using WindowsIsoDownloader.Extension;
 
 using var browserFetcher = new BrowserFetcher();
 await browserFetcher.DownloadAsync(BrowserFetcher.DefaultChromiumRevision);
@@ -43,7 +43,6 @@ if(hrefFromLinks.Any() && hrefFromLinks.First().Contains(".iso"))
             await httpClient.DownloadAsync(isoFileUri, filestream, progress);
         }
     }
-
 }
 else
 {
