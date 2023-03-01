@@ -1,7 +1,7 @@
 ﻿using Microsoft.Playwright;
 using WindowsIsoDownloader.Extension;
 
-var isoDownloadFolder = "c:\\WindowsIsoDownloader\\";
+var isoDownloadFolder = "C:\\";
 var isoFilename = "windows11.iso";
 
 Directory.CreateDirectory(isoDownloadFolder);
