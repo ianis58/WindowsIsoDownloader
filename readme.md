@@ -8,14 +8,13 @@ It can be usefull in projects that allows you to build a custom installer for Wi
 ```
 dotnet build
 ```
-2. Run the produced WindowsIsoDownloader.exe
-3. If it's the first time you launch it and you don't use Microsoft Playwright on your computer, you'll have to run these commands in PowerShell in the build output directory:
+2. If it's the first time you launch it and you don't use Microsoft Playwright on your computer, you'll have to run these commands in PowerShell in the build output directory:
 ```
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
-playwright.ps1 install
-Set-ExecutionPolicy -Scope Process -ExecutionPolicy Undefined
+.\playwright.ps1 install
 ```
-4. The result will be a windows11.iso file in the same folder as WindowsIsoDownloader.exe
+3. Run the WindowsIsoDownloader.exe produced at the step 1.
+4. The result will be a windows11.iso file in C:\windows11.iso
 
 ## Why not publishing a release?
 I prefer not to publish a pre-built executable. The goal is to have as little code as possible,
