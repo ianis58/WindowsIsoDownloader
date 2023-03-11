@@ -1,10 +1,33 @@
 ﻿using Microsoft.Playwright;
+using System.Text.Json;
+using WindowsIsoDownloader;
 using WindowsIsoDownloader.Extension;
 
-var isoDownloadFolder = "c:\\WindowsIsoDownloader\\";
-var isoFilename = "windows11.iso";
+var jsonConfig = File.ReadAllText("config.json");
+Config? config = null;
 
-Directory.CreateDirectory(isoDownloadFolder);
+try
+{
+    config = JsonSerializer.Deserialize<Config>(jsonConfig);
+}
+catch(Exception e)
+{
+    ErrorLoadingConfig();
+    return;
+}
+
+if (null == config
+    || string.IsNullOrWhiteSpace(config.DownloadFolder)
+    || string.IsNullOrWhiteSpace(config.DownloadFilename)
+    || !config.Actions.Any())
+{
+    ErrorLoadingConfig();
+    return;
+}
+
+Directory.CreateDirectory(config.DownloadFolder);
+
+Console.WriteLine("[Info] Trying to obtain Windows 11 iso download link...");
 
 using var playwright = await Playwright.CreateAsync();
 var firefox = playwright.Firefox;
@@ -12,41 +35,70 @@ var browser = await firefox.LaunchAsync(new BrowserTypeLaunchOptions());
 
 var page = await browser.NewPageAsync();
 
-// Opening the main Windows 11 download page
-await page.GotoAsync("https://www.microsoft.com/en-us/software-download/windows11/");
+var actions = config.Actions.OrderBy(x => x.Order);
 
-// Selecting the Windows edition
-await page.SelectOptionAsync("#product-edition", "2370");
+IElementHandle? downloadButton = null;
 
-// Clicking on the button to validate the Windows edition
-await page.ClickAsync("#submit-product-edition");
-
-// Selecting the Windows language (waiting some time to be sure the page is ready)
-await page.WaitForTimeoutAsync(2500);
-await page.SelectOptionAsync("#product-languages", """{"id":"14965","language":"English"}""");
-
-// Clicking on the button to validate the Windows language
-await page.ClickAsync("#submit-sku");
-
-// Obtaining the iso download link (waiting some time to be sure the page is ready)
-await page.WaitForTimeoutAsync(4500);
-var elementHandle = await page.QuerySelectorAsync("#card-info-content .button");
-
-if(null == elementHandle)
+foreach(var action in actions)
 {
-    Console.WriteLine("Error: download button was not found.");
+    if(action.WaitBeforeAction.HasValue && action.WaitBeforeAction.Value > 0)
+    {
+        await page.WaitForTimeoutAsync(action.WaitBeforeAction.Value);
+    }
+
+    if(action.Kind == "Goto")
+    {
+        if (string.IsNullOrEmpty(action.Parameters.Url))
+        {
+            throw new ArgumentNullException("The Url parameter for the Goto action is not specified.", innerException: null);
+        }
+        await page.GotoAsync(action.Parameters.Url);
+    }
+    else if (action.Kind == "SelectOption")
+    {
+        if (string.IsNullOrEmpty(action.Parameters.Selector) || string.IsNullOrEmpty(action.Parameters.Values))
+        {
+            throw new ArgumentNullException("The Selector and/or the Values parameter(s) for the SelectOption action is/are not specified.", innerException: null);
+        }
+        await page.SelectOptionAsync(action.Parameters.Selector, action.Parameters.Values);
+    }
+    else if (action.Kind == "Click")
+    {
+        if (string.IsNullOrEmpty(action.Parameters.Selector))
+        {
+            throw new ArgumentNullException("The Selector parameter for the Click action is not specified.", innerException: null);
+        }
+        await page.ClickAsync(action.Parameters.Selector);
+    }
+    else if (action.Kind == "QuerySelector")
+    {
+        if (string.IsNullOrEmpty(action.Parameters.Selector))
+        {
+            throw new ArgumentNullException("The Selector parameter for the QuerySelector action is not specified.", innerException: null);
+        }
+        downloadButton = await page.QuerySelectorAsync(action.Parameters.Selector);
+    }
+}
+
+float currentProgress = 0;
+
+if(null == downloadButton)
+{
+    Console.WriteLine("[Error] Download button was not found.");
 }
 else
 {
-    var isoFileUrl = await elementHandle.EvaluateAsync<string>("element => element.href");
+    var isoFileUrl = await downloadButton.EvaluateAsync<string>("element => element.href");
 
     if (isoFileUrl.Contains(".iso"))
     {
+        Console.WriteLine($"[Success] Download link found: {isoFileUrl}");
+        Console.WriteLine("[Info] Windows 11 iso download in progress...");
         using(var httpClient = new HttpClient())
         {
             httpClient.Timeout = TimeSpan.FromHours(2);
 
-            using (var filestream = new FileStream(Path.Combine(isoDownloadFolder, isoFilename), FileMode.Create, FileAccess.Write, FileShare.None))
+            using (var filestream = new FileStream(Path.Combine(config.DownloadFolder, config.DownloadFilename), FileMode.Create, FileAccess.Write, FileShare.None))
             {
                 var progress = new Progress<float>();
                 progress.ProgressChanged += ProgressChanged;
@@ -56,11 +108,28 @@ else
     }
     else
     {
-        Console.WriteLine($"Error: found a download link but it seems incorrect: {isoFileUrl}");
+        Console.WriteLine($"[Error] Found a download link but it seems incorrect: {isoFileUrl}");
     }
 }
 
 void ProgressChanged(object? sender, float e)
 {
-    Console.WriteLine($"ISO download progress: {e.ToString("p1")}  ");
+    // The progress in the e variable is in the range 0.000 (0%) to 1.000 (100%)
+    float reportedProgress = (float)Math.Round(e, 3);
+
+    if(reportedProgress > currentProgress)
+    {
+        currentProgress = reportedProgress;
+        for(int i = 0; i < 100; i++)
+        {
+            Console.Write((i < (int)(currentProgress * 100)) ? "█" : "░");
+        }
+        Console.Write($" {currentProgress.ToString("p1")}");
+        Console.SetCursorPosition(0, Console.GetCursorPosition().Top);
+    }
+}
+
+void ErrorLoadingConfig()
+{
+    Console.WriteLine("Unable to load the configuration. Exiting...");
 }

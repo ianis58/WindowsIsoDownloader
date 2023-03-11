@@ -1,0 +1,52 @@
+{}
+	"DownloadFolder": "C:\\",
+	"DownloadFilename": "windows11.iso",
+	"Actions":	[
+		{
+			"Order": 1,
+			"Kind": "Goto",
+			"Parameters": {
+				"Url": "https://www.microsoft.com/en-us/software-download/windows11/"
+			}
+		},
+		{
+			"Order": 2,
+			"Kind": "SelectOption",
+			"Parameters": {
+				"Selector": "#product-edition",
+				"Values": "2370"
+			}
+		},
+		{
+			"Order": 3,
+			"Kind": "Click",
+			"Parameters": {
+				"Selector": "#submit-product-edition"
+			}
+		},
+		{
+			"Order": 4,
+			"Kind": "SelectOption",
+			"WaitBeforeAction": 2500,
+			"Parameters": {
+				"Selector": "#product-languages",
+				"Values": "{\"id\":\"14965\",\"language\":\"English\"}"
+			}
+		},
+		{
+			"Order": 5,
+			"Kind": "Click",
+			"Parameters": {
+				"Selector": "#submit-sku"
+			}
+		},
+		{
+			"Order": 6,
+			"Kind": "QuerySelector",
+			"WaitBeforeAction": 5000,
+			"Parameters": {
+				"Selector": "#card-info-content .button"
+			}
+		}
+	]
+}
