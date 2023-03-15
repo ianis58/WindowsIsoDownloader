@@ -13,7 +13,7 @@ try
 catch(Exception e)
 {
     ErrorLoadingConfig();
-    return;
+    return -1;
 }
 
 if (null == config
@@ -22,7 +22,7 @@ if (null == config
     || !config.Actions.Any())
 {
     ErrorLoadingConfig();
-    return;
+    return -1;
 }
 
 Directory.CreateDirectory(config.DownloadFolder);
@@ -112,6 +112,11 @@ else
     }
 }
 
+Console.WriteLine();
+Console.WriteLine("[Success] ISO Downloaded successfully! Exiting with code 0.");
+
+return 0;
+
 void ProgressChanged(object? sender, float e)
 {
     // The progress in the e variable is in the range 0.000 (0%) to 1.000 (100%)
@@ -131,5 +136,5 @@ void ProgressChanged(object? sender, float e)
 
 void ErrorLoadingConfig()
 {
-    Console.WriteLine("Unable to load the configuration. Exiting...");
+    Console.WriteLine("[Fatal] Unable to load the configuration. Exiting with code -1.");
 }
