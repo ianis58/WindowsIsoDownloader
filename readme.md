@@ -4,21 +4,20 @@ Windows Iso Downloader is a tool that allows to programatically download the lat
 It can be usefull in projects that allows you to build a custom installer for Windows 11, to reduce manual actions.
 
 ## Building
-1. Build it with the command
+You'll need the dotnet 6 SDK installed to build it.
+Then run:
 ```
 dotnet build
 ```
-2. If it's the first time you launch it and you don't use Microsoft Playwright on your computer, you'll have to run these commands in PowerShell in the build output directory:
-```
-Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
-.\playwright.ps1 install
-```
-3. Run the WindowsIsoDownloader.exe produced at the step 1.
-4. The result will be a windows11.iso file in C:\windows11.iso
 
-## Why not publishing a release?
-I prefer not to publish a pre-built executable. The goal is to have as little code as possible,
-so that it's very easy to audit it by reading the sources.
+## Run it
+1. Build it with above instructions or download it from the releases section.
+2. Open a terminal as administrator
+3. cd to the right folder then run:
+```
+./WindowsIsoDownloader.exe
+```
+4. Sit back and relax. 😎 The result will be a windows11.iso file in C:\windows11.iso
 
 ## License
 MIT License

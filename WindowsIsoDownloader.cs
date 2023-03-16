@@ -27,6 +27,15 @@ if (null == config
 
 Directory.CreateDirectory(config.DownloadFolder);
 
+var exitCode = InstallPlaywrightDependencies();
+if (exitCode != 0)
+{
+    Console.WriteLine("[Fatal] Failed to install Playwright dependencies.");
+    return -1;
+}
+
+Console.WriteLine("[Success] Playwright dependencies installed.");
+
 Console.WriteLine("[Info] Trying to obtain Windows 11 iso download link...");
 
 using var playwright = await Playwright.CreateAsync();
@@ -84,7 +93,8 @@ float currentProgress = 0;
 
 if(null == downloadButton)
 {
-    Console.WriteLine("[Error] Download button was not found.");
+    Console.WriteLine("[Fatal] Download button was not found.");
+    return -1;
 }
 else
 {
@@ -98,24 +108,33 @@ else
         {
             httpClient.Timeout = TimeSpan.FromHours(2);
 
-            using (var filestream = new FileStream(Path.Combine(config.DownloadFolder, config.DownloadFilename), FileMode.Create, FileAccess.Write, FileShare.None))
+            try
             {
-                var progress = new Progress<float>();
-                progress.ProgressChanged += ProgressChanged;
-                await httpClient.DownloadAsync(isoFileUrl, filestream, progress);
+                using (var filestream = new FileStream(Path.Combine(config.DownloadFolder, config.DownloadFilename), FileMode.Create, FileAccess.Write, FileShare.None))
+                {
+                    var progress = new Progress<float>();
+                    progress.ProgressChanged += ProgressChanged;
+                    await httpClient.DownloadAsync(isoFileUrl, filestream, progress);
+                }
+            }
+            catch(UnauthorizedAccessException e)
+            {
+                Console.WriteLine($"[Fatal] Can't write at path: {Path.Combine(config.DownloadFolder, config.DownloadFilename)}. Try again from a terminal running as administrator.");
+                return -1;
             }
         }
     }
     else
     {
-        Console.WriteLine($"[Error] Found a download link but it seems incorrect: {isoFileUrl}");
+        Console.WriteLine($"[Fatal] Found a download link but it seems incorrect: {isoFileUrl}");
+        return -1;
     }
+
+    Console.WriteLine();
+    Console.WriteLine("[Success] ISO Downloaded successfully! Exiting with code 0.");
+
+    return 0;
 }
-
-Console.WriteLine();
-Console.WriteLine("[Success] ISO Downloaded successfully! Exiting with code 0.");
-
-return 0;
 
 void ProgressChanged(object? sender, float e)
 {
@@ -137,4 +156,11 @@ void ProgressChanged(object? sender, float e)
 void ErrorLoadingConfig()
 {
     Console.WriteLine("[Fatal] Unable to load the configuration. Exiting with code -1.");
+}
+
+int InstallPlaywrightDependencies()
+{
+    Console.WriteLine("[Info] Installing dependencies for Playwright...");
+
+    return Microsoft.Playwright.Program.Main(new[] { "install", "firefox" });
 }
