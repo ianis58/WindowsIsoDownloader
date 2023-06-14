@@ -14,7 +14,7 @@
 			"Kind": "SelectOption",
 			"Parameters": {
 				"Selector": "#product-edition",
-				"Values": "2370"
+				"Values": "2616"
 			}
 		},
 		{
@@ -30,7 +30,7 @@
 			"WaitBeforeAction": 2500,
 			"Parameters": {
 				"Selector": "#product-languages",
-				"Values": "{\"id\":\"14965\",\"language\":\"English\"}"
+				"Values": "{\"id\":\"16029\",\"language\":\"English\"}"
 			}
 		},
 		{
