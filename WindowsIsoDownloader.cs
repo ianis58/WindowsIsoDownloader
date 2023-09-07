@@ -5,12 +5,18 @@ using WindowsIsoDownloader.Extension;
 
 var jsonConfig = File.ReadAllText("config.json");
 Config? config = null;
+string language = string.Empty;
+
+if (args.Length > 0)
+{
+    language = args[0];
+}
 
 try
 {
     config = JsonSerializer.Deserialize<Config>(jsonConfig);
 }
-catch(Exception e)
+catch (Exception)
 {
     ErrorLoadingConfig();
     return -1;
@@ -69,7 +75,12 @@ foreach(var action in actions)
         {
             throw new ArgumentNullException("The Selector and/or the Values parameter(s) for the SelectOption action is/are not specified.", innerException: null);
         }
-        await page.SelectOptionAsync(action.Parameters.Selector, action.Parameters.Values);
+        string selectedOption = action.Parameters.Values;
+        if (action.Order == 4 && !string.IsNullOrEmpty(language))
+        {
+            selectedOption = language;
+        }
+        await page.SelectOptionAsync(action.Parameters.Selector, new[] { selectedOption });
     }
     else if (action.Kind == "Click")
     {
@@ -104,24 +115,20 @@ else
     {
         Console.WriteLine($"[Success] Download link found: {isoFileUrl}");
         Console.WriteLine("[Info] Windows 11 iso download in progress...");
-        using(var httpClient = new HttpClient())
-        {
-            httpClient.Timeout = TimeSpan.FromHours(2);
+        using var httpClient = new HttpClient();
+        httpClient.Timeout = TimeSpan.FromHours(2);
 
-            try
-            {
-                using (var filestream = new FileStream(Path.Combine(config.DownloadFolder, config.DownloadFilename), FileMode.Create, FileAccess.Write, FileShare.None))
-                {
-                    var progress = new Progress<float>();
-                    progress.ProgressChanged += ProgressChanged;
-                    await httpClient.DownloadAsync(isoFileUrl, filestream, progress);
-                }
-            }
-            catch(UnauthorizedAccessException e)
-            {
-                Console.WriteLine($"[Fatal] Can't write at path: {Path.Combine(config.DownloadFolder, config.DownloadFilename)}. Try again from a terminal running as administrator.");
-                return -1;
-            }
+        try
+        {
+            using var filestream = new FileStream(Path.Combine(config.DownloadFolder, config.DownloadFilename), FileMode.Create, FileAccess.Write, FileShare.None);
+            var progress = new Progress<float>();
+            progress.ProgressChanged += ProgressChanged;
+            await httpClient.DownloadAsync(isoFileUrl, filestream, progress);
+        }
+        catch (UnauthorizedAccessException)
+        {
+            Console.WriteLine($"[Fatal] Can't write at path: {Path.Combine(config.DownloadFolder, config.DownloadFilename)}. Try again from a terminal running as administrator.");
+            return -1;
         }
     }
     else
@@ -148,7 +155,7 @@ void ProgressChanged(object? sender, float e)
         {
             Console.Write((i < (int)(currentProgress * 100)) ? "█" : "░");
         }
-        Console.Write($" {currentProgress.ToString("p1")}");
+        Console.Write($" {currentProgress:p1}");
         Console.SetCursorPosition(0, Console.GetCursorPosition().Top);
     }
 }

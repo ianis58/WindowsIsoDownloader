@@ -30,7 +30,7 @@
 			"WaitBeforeAction": 2500,
 			"Parameters": {
 				"Selector": "#product-languages",
-				"Values": "{\"id\":\"16029\",\"language\":\"English\"}"
+				"Values": "English (United States)"
 			}
 		},
 		{
