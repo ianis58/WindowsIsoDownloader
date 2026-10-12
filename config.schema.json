@@ -1,0 +1,117 @@
+{
+	"$schema": "https://json-schema.org/draft/2020-12/schema",
+	"$id": "https://raw.githubusercontent.com/BENDER35/WindowsIsoDownloader-2.0/master/config.schema.json",
+	"title": "WindowsIsoDownloader configuration",
+	"description": "Drives the browser workflow that locates and downloads the Windows ISO from Microsoft.",
+	"type": "object",
+	"additionalProperties": false,
+	"required": ["Actions"],
+	"properties": {
+		"$schema": {
+			"type": "string"
+		},
+		"DownloadFolder": {
+			"type": "string",
+			"minLength": 1,
+			"default": ".",
+			"description": "Folder where the ISO is written."
+		},
+		"DownloadFilename": {
+			"type": "string",
+			"minLength": 1,
+			"default": "windows10.iso",
+			"description": "Plain file name (no path separators) of the produced ISO.",
+			"pattern": "^[^/\\\\]+$"
+		},
+		"PreferredArchitecture": {
+			"type": "string",
+			"enum": ["X64", "X86", "Arm64", "Any"],
+			"default": "X64",
+			"description": "Image to prefer when the page offers more than one ISO."
+		},
+		"Attempts": {
+			"type": "integer",
+			"minimum": 1,
+			"default": 3,
+			"description": "How many times the whole browser workflow is attempted."
+		},
+		"RetryDelaySeconds": {
+			"type": "integer",
+			"minimum": 0,
+			"default": 5,
+			"description": "Base delay between attempts; grows exponentially (capped at 60s)."
+		},
+		"Headless": {
+			"type": "boolean",
+			"default": true,
+			"description": "Run the browser without a visible window."
+		},
+		"ExperimentalSentinel": {
+			"type": "boolean",
+			"default": false,
+			"description": "Best-effort, experimental warm-up of Microsoft's anti-bot handshake."
+		},
+		"Actions": {
+			"type": "array",
+			"minItems": 1,
+			"description": "Ordered list of browser actions used to reach the download link.",
+			"items": {
+				"$ref": "#/$defs/action"
+			}
+		}
+	},
+	"$defs": {
+		"action": {
+			"type": "object",
+			"additionalProperties": false,
+			"required": ["Order", "Kind"],
+			"properties": {
+				"Order": {
+					"type": "integer",
+					"description": "Execution order, ascending."
+				},
+				"Kind": {
+					"type": "string",
+					"enum": ["Goto", "SelectOption", "Click", "QuerySelector", "WaitForSelector"],
+					"description": "Action type."
+				},
+				"WaitBeforeAction": {
+					"type": ["integer", "null"],
+					"minimum": 0,
+					"description": "Delay (ms) applied before running the action."
+				},
+				"Optional": {
+					"type": "boolean",
+					"default": false,
+					"description": "When true, a failure is logged and the workflow continues."
+				},
+				"Timeout": {
+					"type": ["integer", "null"],
+					"minimum": 0,
+					"description": "Per-action timeout (ms)."
+				},
+				"Parameters": {
+					"$ref": "#/$defs/parameters"
+				}
+			}
+		},
+		"parameters": {
+			"type": "object",
+			"additionalProperties": false,
+			"properties": {
+				"Url": {
+					"type": "string",
+					"description": "Target URL, used by Goto."
+				},
+				"Selector": {
+					"type": "string",
+					"description": "CSS selector, used by SelectOption, Click, QuerySelector and WaitForSelector."
+				},
+				"Values": {
+					"type": "string",
+					"description": "Value passed to SelectOption."
+				}
+			}
+		}
+	}
+}

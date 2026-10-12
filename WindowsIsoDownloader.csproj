@@ -2,17 +2,42 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <RootNamespace>WindowsIsoDownloader</RootNamespace>
+    <AssemblyName>WindowsIsoDownloader</AssemblyName>
+    <!-- Architecture-neutral managed code: the same assembly runs on 32-bit
+         (x86) and 64-bit (x64/arm64) runtimes as long as a matching .NET 10
+         runtime is present, so AnyCPU is stated explicitly here (it is the
+         default for net10.0) and Prefer32Bit is disabled.
+         Note: do NOT declare <RuntimeIdentifiers> here. Microsoft.Playwright
+         selects the driver folder from the active RuntimeIdentifier, and an
+         unrecognized RID (or a list of them) makes it copy every platform's
+         ~575 MB driver set into the output. See the readme/technical guide for
+         the 32-bit (win-x86) publish command. -->
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <Prefer32Bit>false</Prefer32Bit>
+    <InvariantGlobalization>false</InvariantGlobalization>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Playwright" Version="1.31.1" />
+    <PackageReference Include="Microsoft.Playwright" Version="1.63.0" />
+  </ItemGroup>
+
+  <!-- The xUnit test project lives under tests/. Keep it out of this project's
+       default recursive compile glob. -->
+  <ItemGroup>
+    <Compile Remove="tests/**" />
+    <None Remove="tests/**" />
   </ItemGroup>
 
   <ItemGroup>
     <None Update="config.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="config.schema.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>

@@ -1,52 +1,66 @@
 {
-	"DownloadFolder": "C:\\",
-	"DownloadFilename": "windows11.iso",
-	"Actions":	[
+	"$schema": "./config.schema.json",
+	"DownloadFolder": ".",
+	"DownloadFilename": "windows10.iso",
+	"PreferredArchitecture": "X64",
+	"Attempts": 3,
+	"RetryDelaySeconds": 5,
+	"Headless": true,
+	"ExperimentalSentinel": false,
+	"Actions": [
 		{
 			"Order": 1,
 			"Kind": "Goto",
 			"Parameters": {
-				"Url": "https://www.microsoft.com/en-us/software-download/windows11/"
+				"Url": "https://www.microsoft.com/en-us/software-download/windows10ISO"
 			}
 		},
 		{
 			"Order": 2,
-			"Kind": "SelectOption",
+			"Kind": "Click",
+			"Optional": true,
+			"Timeout": 2000,
 			"Parameters": {
-				"Selector": "#product-edition",
-				"Values": "2935"
+				"Selector": "#onetrust-reject-all-handler"
 			}
 		},
 		{
 			"Order": 3,
+			"Kind": "SelectOption",
+			"Parameters": {
+				"Selector": "#product-edition",
+				"Values": "2618"
+			}
+		},
+		{
+			"Order": 4,
 			"Kind": "Click",
 			"Parameters": {
 				"Selector": "#submit-product-edition"
 			}
 		},
 		{
-			"Order": 4,
+			"Order": 5,
 			"Kind": "SelectOption",
-			"WaitBeforeAction": 2500,
+			"WaitBeforeAction": 4000,
 			"Parameters": {
 				"Selector": "#product-languages",
-				"Values": "{\"id\":\"17442\",\"language\":\"English\"}"
-				
+				"Values": "{\"id\":\"16067\",\"language\":\"English\"}"
 			}
 		},
 		{
-			"Order": 5,
+			"Order": 6,
 			"Kind": "Click",
 			"Parameters": {
 				"Selector": "#submit-sku"
 			}
 		},
 		{
-			"Order": 6,
+			"Order": 7,
 			"Kind": "QuerySelector",
-			"WaitBeforeAction": 5000,
+			"WaitBeforeAction": 8000,
 			"Parameters": {
-				"Selector": "#card-info-content .button"
+				"Selector": "#card-info-content a"
 			}
 		}
 	]

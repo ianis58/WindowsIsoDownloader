@@ -1,0 +1,90 @@
+name: CI
+
+on:
+  push:
+    branches: [master, main]
+    tags: ['v*']
+  pull_request:
+    branches: [master, main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-test:
+    name: Build and test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore
+        run: dotnet restore WindowsIsoDownloader.sln
+
+      - name: Build
+        run: dotnet build WindowsIsoDownloader.sln -c Release --no-restore
+
+      - name: Test
+        run: dotnet test WindowsIsoDownloader.sln -c Release --no-build --verbosity normal
+
+  release:
+    name: Publish release assets
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: build-test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore
+        run: dotnet restore WindowsIsoDownloader.sln
+
+      - name: Publish linux-x64
+        run: >
+          dotnet publish WindowsIsoDownloader.csproj -c Release
+          -r linux-x64 --self-contained true
+          -p:PublishSingleFile=false -o artifacts/linux-x64
+
+      - name: Publish win-x64
+        run: >
+          dotnet publish WindowsIsoDownloader.csproj -c Release
+          -r win-x64 --self-contained true
+          -p:PublishSingleFile=false -o artifacts/win-x64
+
+      - name: Publish win-x86
+        run: >
+          dotnet publish WindowsIsoDownloader.csproj -c Release
+          -r win-x86 --self-contained true -p:PlaywrightPlatform=win
+          -p:PublishSingleFile=false -o artifacts/win-x86
+
+      - name: Package assets
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          (cd artifacts/linux-x64 && zip -qr "$GITHUB_WORKSPACE/dist/WindowsIsoDownloader-2.0-linux-x64.zip" .)
+          (cd artifacts/win-x64   && zip -qr "$GITHUB_WORKSPACE/dist/WindowsIsoDownloader-2.0-win-x64.zip" .)
+          (cd artifacts/win-x86   && zip -qr "$GITHUB_WORKSPACE/dist/WindowsIsoDownloader-2.0-win-x86.zip" .)
+          git archive --format=zip -o dist/WindowsIsoDownloader-2.0-source.zip HEAD
+          (cd dist && sha256sum *.zip > SHA256SUMS.txt)
+          cat dist/SHA256SUMS.txt
+
+      - name: Upload release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/WindowsIsoDownloader-2.0-*.zip
+            dist/SHA256SUMS.txt
+          fail_on_unmatched_files: true
